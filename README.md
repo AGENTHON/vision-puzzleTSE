@@ -2,5 +2,5 @@
 
 ## Problèmes rencontrés
 
-- Impossibilité de différencier un creux et un bord
 - Image impérativement sans aucun bruit
+- Arriver à détecter les formes à partir des coins et des points restants (excroissances)
