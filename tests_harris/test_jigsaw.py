@@ -32,8 +32,18 @@ def get_harris_points(path):
     corn_points = zip(corn_points[0], corn_points[1])
     points = [x for x in corn_points]
 
-    # remove duplicates
-    points = list(set(points))
+    # remove too-close points (dist = 15)
+    new_points = [ points[0] ]
+    for (x,y) in points:
+        # compare with already saved points
+        comparison = [ euclidean_distance(x, y, a, b) < 15 for (a,b) in new_points ]
+
+        # save point
+        if True not in comparison:
+            new_points.append( (x,y) )
+
+    # replace points variable
+    points = new_points
     
     # init storage variable
     distances = []
@@ -51,6 +61,10 @@ def get_harris_points(path):
         # add to distances variable
         distances.append(mini)
 
+
+    # DEBUG: create associative array
+    print(sorted(distances))
+
     # get 4 most distant ones
     corners = []
 
@@ -60,8 +74,11 @@ def get_harris_points(path):
         print(max_dist)
         index = distances.index(max_dist)
 
-        # append to corner, remove max from distances
+        # append to corners
         corners.append( points[index] )
+
+        # update lists of points / distances
+        del points[index]
         del distances[index]
 
     # remove corner points from points
