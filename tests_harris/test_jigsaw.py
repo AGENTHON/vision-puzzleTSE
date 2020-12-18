@@ -2,12 +2,20 @@ import math as math
 import numpy as np
 import cv2 as cv
 
-""" image definition """
-filename = 'jigsaw_puzzle.png'
+from copy import copy, deepcopy
+
+""" path definition """
+filename = './jigsaw_puzzle.png'
 
 
-""" get Harris corners function """
-def get_harris_corners(path):
+""" euclidean distance """
+def euclidean_distance(x1, y1, x2, y2):
+    # euclidean distance formula
+    return math.sqrt(math.pow(x1 - x2, 2) + math.pow(y1 - y2, 2))
+
+
+""" get Harris points function """
+def get_harris_points(path):
     # read image from file
     img = cv.imread(path)
     gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
@@ -16,46 +24,67 @@ def get_harris_corners(path):
     # return boolean np.ndarray with features as True
     dst = cv.cornerHarris(gray, 2, 1, 0.04)
     corn = dst > 0.01 * dst.max()
-    return [ img , corn ]
 
-
-""" get coordinates of feature points """
-def get_coordinates(booleanArray):
     # get all True indexes as zip
     corn_points = np.where(corn == True)
 
-    # unzip them and return
+    # unzip them
     corn_points = zip(corn_points[0], corn_points[1])
-    return [x for x in corn_points]
+    points = [x for x in corn_points]
 
+    # remove duplicates
+    points = list(set(points))
+    
+    # init storage variable
+    distances = []
 
-""" get only important coordinates (without really close neighbors) """
-def clean_coordinates(points, distMin):
-    # new array
-    cleanedPt = []
-
-    # loop and add (if not close enough)
+    # loop through points
     for (x,y) in points:
-        addIt = True
-        for (i,j) in cleanedPt:
-            if math.sqrt(math.pow(x - i, 2) + math.pow(y - j, 2)) <= distMin:
-                addIt = False
+        # init variables
+        mini = math.inf
+        
+        # compare and get minimum distance
+        for (i,j) in points:
+            if (x,y) != (i,j):
+                mini = min(mini, euclidean_distance(x, y, i, j))
 
-        if addIt:
-            cleanedPt.append( (x,y) )
+        # add to distances variable
+        distances.append(mini)
 
-    # return cleaned points
-    return cleanedPt
+    # get 4 most distant ones
+    corners = []
+
+    for i in range(4):
+        # get max distance among variable
+        max_dist = max(distances)
+        print(max_dist)
+        index = distances.index(max_dist)
+
+        # append to corner, remove max from distances
+        corners.append( points[index] )
+        del distances[index]
+
+    # remove corner points from points
+    points = list(set(points) - set(corners))
+
+    # return variables
+    return (img, points, corners)
 
 
-""" add points to image and show it """
-def show_image_features(img, points):
-    # add feature points in green to image (artificially bigger)
+""" show image function """
+def show_image(img, points, corners):
+    # add feature points in red to image
     nb = [ (i,j) for i in range(-2,3) for j in range(-2,3) ]
     for (a,b) in points:
         for (i,j) in nb:
             img[a+i, b+j] = (0, 0, 255)
 
+    # add corner points in green to image
+    nb = [ (i,j) for i in range(-2,3) for j in range(-2,3) ]
+    for (a,b) in corners:
+        for (i,j) in nb:
+            img[a+i, b+j] = (0, 255, 0)
+    
     # show
     cv.imshow('dst', img)
     if cv.waitKey(0) & 0xff == 27:
@@ -63,14 +92,11 @@ def show_image_features(img, points):
 
 
 """ main part of file """
-img, corn = get_harris_corners(filename)
-
-points = get_coordinates(corn)
-cleaned = clean_coordinates(points, 20)
-print(cleaned)
-
-show_image_features(img, cleaned)
-
+if __name__ == '__main__':
+    img, points, corners = get_harris_points(filename)
+    print(corners)
+    
+    show_image(img, points, corners)
 
 
 
