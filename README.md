@@ -1,6 +1,13 @@
 # vision-puzzleTSE
 
+### Traitement
+
 ## Problèmes rencontrés
 
 - Image impérativement sans aucun bruit
-- Arriver à détecter les formes à partir des coins et des points restants (excroissances)
+- Le profil couleur des bords pour les matcher 2 à 2 reste à faire
+
+## Avancées
+
+- La détection des coins ne pose pas trop problème
+- Leur ordonnancement non plus, avec un calcul de composante radiale
