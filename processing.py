@@ -149,31 +149,6 @@ def get_harris_points(path):
     return (img , new_points, corners, specific)
 
 
-""" """
-def get_laplacian_of_gaussian(path):
-    # read image from file
-    img = cv.imread(path)
-    gray = cv.imread(path, 0)
-
-    # first gaussian blur
-    blur = cv.GaussianBlur(gray,(3,3), 0)
-
-    # second laplacian operator
-    laplacian = cv.Laplacian(blur, cv.CV_64F)
-    laplacian = ( laplacian + abs(laplacian.min()) ) / ( laplacian.max() - laplacian.min() ) # from 0 to 1
-    
-    # DEBUG: show stuff
-    plt.subplot(1, 2, 1), plt.imshow(img)
-    plt.title('Original')
-    plt.xticks([]), plt.yticks([])
-
-    plt.subplot(1, 2, 2), plt.imshow(laplacian)
-    plt.title('after LoG')
-    plt.xticks([]), plt.yticks([])
-
-    plt.show()
-
-
 """ show image function """
 def show_image(img, points, corners, specific):
     # add all points to basic image
@@ -246,7 +221,6 @@ if __name__ == '__main__':
     for fname in filenames:
         img, points, corners, specific = get_harris_points(fname)
         show_image(img, points, corners, specific)
-        get_laplacian_of_gaussian(fname)
 
 
 
