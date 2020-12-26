@@ -9,6 +9,12 @@ import cv2 as cv
 filenames = [ './Banque/piece_' + str(i) + '.png' for i in range(1, 7) ]
 
 
+""" compare signs """
+def compare_signs(n1, n2):
+    # np.sign returns -1 (negative), 0 (null) or 1 (positive)
+    return abs(np.sign(n1) - np.sign(n2)) <= 1
+
+
 """ euclidean distance """
 def euclidean_distance(x1, y1, x2, y2):
     # euclidean distance formula
@@ -67,12 +73,17 @@ def guess_shape_per_edge(img, corners):
     specific = [ [ None for i in range(2) ] for j in range(len(corners)) ]
     for i in range(len(corners)):
         (x1, y1) , (x2, y2) = corners[i], corners[(i+1) % len(corners)]
-        size = euclidean_distance(x1, y1, x2, y2)
-        dx, dy = abs(x2 - x1) / size , abs(y2 - y1) / size
+        percent = 0.12
+        dx, dy = x2 - x1 , y2 - y1
         mx, my = (x1 + x2) // 2 , (y1 + y2) // 2
 
-        specific[i][0] = ( mx + int(dy * 20) , my + int(dx * 20) )
-        specific[i][1] = ( mx - int(dy * 20) , my - int(dx * 20) )
+        if compare_signs(dx, dy):
+            specific[i][0] = ( mx + int(percent * abs(dy)) , my - int(percent * abs(dx)) )
+            specific[i][1] = ( mx - int(percent * abs(dy)) , my + int(percent * abs(dx)) )
+
+        else:
+            specific[i][0] = ( mx + int(percent * abs(dy)) , my + int(percent * abs(dx)) )
+            specific[i][1] = ( mx - int(percent * abs(dy)) , my - int(percent * abs(dx)) )
 
     return specific
 
