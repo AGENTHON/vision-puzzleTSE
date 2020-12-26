@@ -69,6 +69,33 @@ def order_corners(corners):
     return ordered
 
 
+""" select corners by max. distance """
+def select_corners(points):
+    # get distances to nearest neighbour
+    distances = []
+    for (x,y) in points:
+        # init variables
+        mini = math.inf
+        for (i,j) in points:
+            if (x,y) != (i,j):
+                mini = min(mini, euclidean_distance(x, y, i, j))
+        distances.append(mini)
+
+    # get 4 most distant ones from each other
+    corners = []
+    for i in range(4):
+        # update variables
+        max_dist = max(distances)
+        index = distances.index(max_dist)
+        corners.append( points[index] )
+
+        del points[index]
+        del distances[index]
+    
+    # return corners in order
+    return order_corners(corners)
+
+
 """ get specific points around the center of each edge to get the shape -- corners MUST be ordered """
 def guess_shape_per_edge(img, corners):
     # init storage variable
@@ -92,16 +119,15 @@ def guess_shape_per_edge(img, corners):
 
 """ this function uses Harris corner detector to return 4 corners of the puzzle piece """
 def get_harris_points(path):
-    # read image from file as binary
-    img = cv.imread(path, 0)
-    img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+    # read image from file
+    img = cv.imread(path)
+    gray = np.float32(cv.imread(path, 0))
     
     # return boolean np.ndarray with features as True
-    gray = np.float32(cv.cvtColor(img, cv.COLOR_BGR2GRAY))
     dst = cv.cornerHarris(gray, 2, 1, 0.04)
+    corn = dst > 0.01 * dst.max()
     
     # get feature points
-    corn = dst > 0.01 * dst.max()
     corn_points = np.where(corn == True)
     corn_points = zip(corn_points[0], corn_points[1])
     points = [x for x in corn_points]
@@ -115,33 +141,37 @@ def get_harris_points(path):
             new_points.append( (x,y) )
     points = copy(new_points)
 
-    # get distances to nearest neighbour
-    distances = []
-    for (x,y) in points:
-        # init variables
-        mini = math.inf
-        for (i,j) in points:
-            if (x,y) != (i,j):
-                mini = min(mini, euclidean_distance(x, y, i, j))
-        distances.append(mini)
-
-    # get 4 most distant ones from each other
-    corners = []
-    for i in range(4):
-        # update variables
-        max_dist = max(distances)
-        index = distances.index(max_dist)
-        corners.append( points[index] )
-
-        del points[index]
-        del distances[index]
-    
     # call generic functions
-    corners = order_corners(corners)
+    corners = select_corners(points)
     specific = guess_shape_per_edge(img, corners)
 
     # return variables
     return (img , new_points, corners, specific)
+
+
+""" """
+def get_laplacian_of_gaussian(path):
+    # read image from file
+    img = cv.imread(path)
+    gray = cv.imread(path, 0)
+
+    # first gaussian blur
+    blur = cv.GaussianBlur(gray,(3,3), 0)
+
+    # second laplacian operator
+    laplacian = cv.Laplacian(blur, cv.CV_64F)
+    laplacian = ( laplacian + abs(laplacian.min()) ) / ( laplacian.max() - laplacian.min() ) # from 0 to 1
+    
+    # DEBUG: show stuff
+    plt.subplot(1, 2, 1), plt.imshow(img)
+    plt.title('Original')
+    plt.xticks([]), plt.yticks([])
+
+    plt.subplot(1, 2, 2), plt.imshow(laplacian)
+    plt.title('after LoG')
+    plt.xticks([]), plt.yticks([])
+
+    plt.show()
 
 
 """ show image function """
@@ -216,6 +246,7 @@ if __name__ == '__main__':
     for fname in filenames:
         img, points, corners, specific = get_harris_points(fname)
         show_image(img, points, corners, specific)
+        get_laplacian_of_gaussian(fname)
 
 
 
