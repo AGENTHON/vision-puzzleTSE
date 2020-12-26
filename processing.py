@@ -2,6 +2,8 @@ import math as math
 import numpy as np
 from matplotlib import pyplot as plt
 
+from copy import copy
+
 import cv2 as cv
 
 
@@ -104,15 +106,15 @@ def get_harris_points(path):
     corn_points = zip(corn_points[0], corn_points[1])
     points = [x for x in corn_points]
 
-    # remove too-close points (dist = 15)
+    # remove too close (from each other) points -- current distance = 15
     new_points = [ points[0] ]
     for (x,y) in points:
         # compare with already saved points
         comparison = [ euclidean_distance(x, y, a, b) < 15 for (a,b) in new_points ]
         if True not in comparison:
             new_points.append( (x,y) )
-    points = new_points
-    
+    points = copy(new_points)
+
     # get distances to nearest neighbour
     distances = []
     for (x,y) in points:
@@ -123,7 +125,7 @@ def get_harris_points(path):
                 mini = min(mini, euclidean_distance(x, y, i, j))
         distances.append(mini)
 
-    # get 4 most distant ones
+    # get 4 most distant ones from each other
     corners = []
     for i in range(4):
         # update variables
@@ -139,13 +141,24 @@ def get_harris_points(path):
     specific = guess_shape_per_edge(img, corners)
 
     # return variables
-    return (img , corners, specific)
+    return (img , new_points, corners, specific)
 
 
 """ show image function """
-def show_image(img, corners, specific):
-    # add corner points to image
-    withPoints = img.copy()
+def show_image(img, points, corners, specific):
+    # add all points to basic image
+    basic = img.copy()
+    nb = [ (i,j) for i in range(-4,5) for j in range(-4,5) ]
+    for i in range(len(points)):
+        # get variables
+        (a,b) = points[i]
+
+        # replace on image
+        for (i,j) in nb:
+            basic[a+i, b+j] = (255,0,0) # R
+
+    # add corners to detailled image
+    detailled = img.copy()
     nb = [ (i,j) for i in range(-4,5) for j in range(-4,5) ]
     colors = [ (255,0,0) , (0,255,0) , (0,0,255) , (255,255,0) ] # R, G, B, Y
     for i in range(len(corners)):
@@ -155,11 +168,10 @@ def show_image(img, corners, specific):
 
         # replace on image
         for (i,j) in nb:
-            withPoints[a+i, b+j] = color
+            detailled[a+i, b+j] = color
 
-    # add specific points to image
+    # add specific points to detailled image
     nb = [ (i,j) for i in range(-4,5) for j in range(-4,5) ]
-    color = (255,0,255) # M
     for i in range(len(corners)):
         for j in range(2):
             # get variables
@@ -167,7 +179,7 @@ def show_image(img, corners, specific):
 
             # replace on image
             for (x,y) in nb:
-                withPoints[a+x, b+y] = color
+                detailled[a+x, b+y] = (255,0,255) # M
 
         # analyze shape of this edge
         pixels = [ tuple(img[a,b]) for (a,b) in specific[i] ]
@@ -184,12 +196,16 @@ def show_image(img, corners, specific):
     print("----------")
 
     # show
-    plt.subplot(1, 2, 1), plt.imshow(img)
+    plt.subplot(1, 3, 1), plt.imshow(img)
     plt.title('Original')
     plt.xticks([]), plt.yticks([])
 
-    plt.subplot(1, 2, 2), plt.imshow(withPoints)
-    plt.title('With feature points')
+    plt.subplot(1, 3, 2), plt.imshow(basic)
+    plt.title('w/ feature points')
+    plt.xticks([]), plt.yticks([])
+
+    plt.subplot(1, 3, 3), plt.imshow(detailled)
+    plt.title('w/ full processing')
     plt.xticks([]), plt.yticks([])
     
     plt.show()
@@ -198,8 +214,8 @@ def show_image(img, corners, specific):
 """ main part of file """
 if __name__ == '__main__':
     for fname in filenames:
-        img, corners, specific = get_harris_points(fname)
-        show_image(img, corners, specific)
+        img, points, corners, specific = get_harris_points(fname)
+        show_image(img, points, corners, specific)
 
 
 
