@@ -11,30 +11,19 @@ import cv2 as cv
 filenames = [ './Banque/piece_' + str(i) + '.png' for i in range(1, 7) ]
 
 
-""" compare signs """
-def compare_signs(n1, n2):
-    # np.sign returns -1 (negative), 0 (null) or 1 (positive)
-    return abs(np.sign(n1) - np.sign(n2)) <= 1
-
-
 """ euclidean distance """
 def euclidean_distance(x1, y1, x2, y2):
     # euclidean distance formula
     return math.sqrt(math.pow(x1 - x2, 2) + math.pow(y1 - y2, 2))
 
 
-""" get radial angle """
-def get_radial_angle(px, py, cx, cy):
-    # radial angle formula
-    return - math.degrees(math.atan2(py - cy, px - cx)) % 360
+""" select corners by maximum of detector """
+def select_corners(points):
+    # get 4 most likely
+    corners = points[:4]
 
-
-""" sort the corners by radial angle """
-def order_corners(corners):
     # compute centroid of corners
-    x = [c[0] for c in corners]
-    y = [c[1] for c in corners]
-    centroid = ( sum(x) / len(corners), sum(y) / len(corners) )
+    centroid = ( sum([c[0] for c in corners]) / len(corners), sum([c[1] for c in corners]) / len(corners) )
 
     # get radial angle of each corner
     radial = [ None for i in range(4) ]
@@ -43,121 +32,102 @@ def order_corners(corners):
         (x,y) = corners[i]
         (a,b) = centroid
 
-        # compute radial angle
-        radial[i] = get_radial_angle(x, y, a, b)
+        # radial angle formula
+        radial[i] = - math.degrees(math.atan2(y - b, x - a)) % 360
     
-    # order corners by angle
-    ordered = []
-    while len(corners):
-        # init mini & angle
-        mini, angle = corners[0], radial[0]
-
-        for i in range(len(corners)):
-            if radial[i] < angle:
-                # update mini & angle
-                mini = corners[i]
-                angle = radial[i]
-
-        # update storage variables
-        index = corners.index(mini)
-        ordered.append(mini)
-        
-        del corners[index]
-        del radial[index]
-
+    # sort corners by angle
+    radial, corners = (list(t) for t in zip(*sorted(zip(radial, corners))))
+    
     # return clockwise corners
-    return ordered
+    return corners
 
 
-""" select corners by max. distance """
-def select_corners(points):
-    # get distances to nearest neighbour
-    distances = []
-    for (x,y) in points:
-        # init variables
-        mini = math.inf
-        for (i,j) in points:
-            if (x,y) != (i,j):
-                mini = min(mini, euclidean_distance(x, y, i, j))
-        distances.append(mini)
+""" use points near the center of each edge to guess the edge's shape """
+def guess_edge_shape(img, corners):
+    # init string return var
+    string = ""
 
-    # get 4 most distant ones from each other
-    corners = []
-    for i in range(4):
-        # update variables
-        max_dist = max(distances)
-        index = distances.index(max_dist)
-        corners.append( points[index] )
-
-        del points[index]
-        del distances[index]
-    
-    # return corners in order
-    return order_corners(corners)
-
-
-""" get specific points around the center of each edge to get the shape -- corners MUST be ordered """
-def guess_shape_per_edge(img, corners):
-    # init storage variable
-    specific = [ [ None for i in range(2) ] for j in range(len(corners)) ]
+    # loop through corners
     for i in range(len(corners)):
         (x1, y1) , (x2, y2) = corners[i], corners[(i+1) % len(corners)]
         percent = 0.12
         dx, dy = x2 - x1 , y2 - y1
         mx, my = (x1 + x2) // 2 , (y1 + y2) // 2
 
-        if compare_signs(dx, dy):
-            specific[i][0] = ( mx + int(percent * abs(dy)) , my - int(percent * abs(dx)) )
-            specific[i][1] = ( mx - int(percent * abs(dy)) , my + int(percent * abs(dx)) )
+        # get correct line direction
+        if abs(np.sign(dx) - np.sign(dy)) <= 1:
+            (a1, b1) = ( mx + int(percent * abs(dy)) , my - int(percent * abs(dx)) )
+            (a2, b2) = ( mx - int(percent * abs(dy)) , my + int(percent * abs(dx)) )
 
         else:
-            specific[i][0] = ( mx + int(percent * abs(dy)) , my + int(percent * abs(dx)) )
-            specific[i][1] = ( mx - int(percent * abs(dy)) , my - int(percent * abs(dx)) )
+            (a1, b1) = ( mx + int(percent * abs(dy)) , my + int(percent * abs(dx)) )
+            (a2, b2) = ( mx - int(percent * abs(dy)) , my - int(percent * abs(dx)) )
 
-    return specific
+        # print this edge's shape
+        pixels = [ tuple(img[a1,b1]) , tuple(img[a2,b2]) ]
+        
+        if (0,0,0) in pixels and (255,255,255) in pixels:
+            string += "Bord - "
+        elif (255,255,255) in pixels:
+            string += "Bosse - "
+        else:
+            string += "Creux - "
+
+    # return analysis string
+    return string[:-3]
 
 
-""" this function uses Harris corner detector to return 4 corners of the puzzle piece """
+""" get indexes of N max values in image """
+def get_n_max_value_indexes(img, N = 10, dist = 3):
+    # create storage variable
+    points = []
+    
+    # get N indexes of maximum
+    for i in range(N):
+        # get coordinates & update list
+        (x,y) = np.unravel_index(img.argmax(), img.shape)
+        points.append( (x,y) )
+
+        # set point + neighborhood to 0
+        neigh = [ (x+a,y+b) for a in range(-dist, dist) for b in range(-dist, dist) ]
+        for (a,b) in neigh:
+            if 0 <= a < img.shape[0] and 0 <= b < img.shape[1]:
+                img[a][b] = 0
+
+    # return value
+    return points
+
+
+""" this function uses Harris corner detector to analyze a jigsaw piece """
 def get_harris_points(path):
     # read image from file
     img = cv.imread(path)
     gray = np.float32(cv.imread(path, 0))
     
     # return boolean np.ndarray with features as True
-    dst = cv.cornerHarris(gray, 2, 1, 0.04)
-    corn = dst > 0.01 * dst.max()
-    
-    # get feature points
-    corn_points = np.where(corn == True)
-    corn_points = zip(corn_points[0], corn_points[1])
-    points = [x for x in corn_points]
+    dst = cv.cornerHarris(gray, 2, 3, 0.04)
 
-    # remove too close (from each other) points -- current distance = 15
-    new_points = [ points[0] ]
-    for (x,y) in points:
-        # compare with already saved points
-        comparison = [ euclidean_distance(x, y, a, b) < 15 for (a,b) in new_points ]
-        if True not in comparison:
-            new_points.append( (x,y) )
-    points = copy(new_points)
+    # get index corresponding to first maxima in image || default values { N = 10 and dist = 3 }
+    points = get_n_max_value_indexes(dst)
 
-    # call generic functions
+    # get corners (4 Harris detection corner maxima)
     corners = select_corners(points)
-    specific = guess_shape_per_edge(img, corners)
+    
+    # print edge analysis result
+    print("Edge shape analysis:")
+    print(guess_edge_shape(img, corners))
+    print("----------\n")
 
     # return variables
-    return (img , new_points, corners, specific)
+    return (img, points, corners)
 
 
 """ show image function """
-def show_image(img, points, corners, specific):
+def show_image(img, points, corners):
     # add all points to basic image
     basic = img.copy()
     nb = [ (i,j) for i in range(-4,5) for j in range(-4,5) ]
-    for i in range(len(points)):
-        # get variables
-        (a,b) = points[i]
-
+    for (a,b) in points:
         # replace on image
         for (i,j) in nb:
             basic[a+i, b+j] = (255,0,0) # R
@@ -170,47 +140,22 @@ def show_image(img, points, corners, specific):
         # get variables
         (a,b) = corners[i]
         color = colors[i]
-
+        
         # replace on image
         for (i,j) in nb:
             detailled[a+i, b+j] = color
 
-    # add specific points to detailled image
-    nb = [ (i,j) for i in range(-4,5) for j in range(-4,5) ]
-    for i in range(len(corners)):
-        for j in range(2):
-            # get variables
-            (a,b) = specific[i][j]
-
-            # replace on image
-            for (x,y) in nb:
-                detailled[a+x, b+y] = (255,0,255) # M
-
-        # analyze shape of this edge
-        pixels = [ tuple(img[a,b]) for (a,b) in specific[i] ]
-
-        if (0,0,0) in pixels and (255,255,255) in pixels:
-            print("Bord")
-
-        elif (255,255,255) in pixels:
-            print("Bosse")
-
-        else:
-            print("Creux")
-
-    print("----------")
-
-    # show
+    # plot using subplots
     plt.subplot(1, 3, 1), plt.imshow(img)
     plt.title('Original')
     plt.xticks([]), plt.yticks([])
 
     plt.subplot(1, 3, 2), plt.imshow(basic)
-    plt.title('w/ feature points')
+    plt.title('w/ all feature points')
     plt.xticks([]), plt.yticks([])
 
     plt.subplot(1, 3, 3), plt.imshow(detailled)
-    plt.title('w/ full processing')
+    plt.title('w/ detected corners')
     plt.xticks([]), plt.yticks([])
     
     plt.show()
@@ -219,9 +164,7 @@ def show_image(img, points, corners, specific):
 """ main part of file """
 if __name__ == '__main__':
     for fname in filenames:
-        img, points, corners, specific = get_harris_points(fname)
-        show_image(img, points, corners, specific)
-
-
+        img, points, corners = get_harris_points(fname)
+        show_image(img, points, corners)
 
 
