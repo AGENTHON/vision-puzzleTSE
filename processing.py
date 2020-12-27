@@ -44,8 +44,8 @@ def select_corners(points):
 
 """ use points near the center of each edge to guess the edge's shape """
 def guess_edge_shape(img, corners):
-    # init string return var
-    string = ""
+    # init variables
+    edge_points, string = [] , ""
 
     # loop through corners
     for i in range(len(corners)):
@@ -63,6 +63,9 @@ def guess_edge_shape(img, corners):
             (a1, b1) = ( mx + int(percent * abs(dy)) , my + int(percent * abs(dx)) )
             (a2, b2) = ( mx - int(percent * abs(dy)) , my - int(percent * abs(dx)) )
 
+        # add points to variable
+        edge_points += [ (a1, b1) , (a2, b2) ]
+
         # print this edge's shape
         pixels = [ tuple(img[a1,b1]) , tuple(img[a2,b2]) ]
         
@@ -73,8 +76,11 @@ def guess_edge_shape(img, corners):
         else:
             string += "Creux - "
 
-    # return analysis string
-    return string[:-3]
+    # print analysis string
+    print("Edge analysis: " + string[:-3] + "\n----------\n")
+
+    # return special edge points
+    return edge_points
 
 
 """ get indexes of N max values in image """
@@ -114,16 +120,14 @@ def get_harris_points(path):
     corners = select_corners(points)
     
     # print edge analysis result
-    print("Edge shape analysis:")
-    print(guess_edge_shape(img, corners))
-    print("----------\n")
+    edge_points = guess_edge_shape(img, corners)
 
     # return variables
-    return (img, points, corners)
+    return (img, points, corners, edge_points)
 
 
 """ show image function """
-def show_image(img, points, corners):
+def show_image(img, points, corners, edge_points):
     # add all points to basic image
     basic = img.copy()
     nb = [ (i,j) for i in range(-4,5) for j in range(-4,5) ]
@@ -132,18 +136,27 @@ def show_image(img, points, corners):
         for (i,j) in nb:
             basic[a+i, b+j] = (255,0,0) # R
 
-    # add corners to detailled image
+    # openCV line plotting variable
+    thickness = 2
+
+    # draw edge lines on detailled image
     detailled = img.copy()
-    nb = [ (i,j) for i in range(-4,5) for j in range(-4,5) ]
     colors = [ (255,0,0) , (0,255,0) , (0,0,255) , (255,255,0) ] # R, G, B, Y
     for i in range(len(corners)):
         # get variables
-        (a,b) = corners[i]
+        (y1, x1), (y2, x2) = corners[i], corners[(i+1) % len(corners)]
         color = colors[i]
         
-        # replace on image
-        for (i,j) in nb:
-            detailled[a+i, b+j] = color
+        # plot line to image
+        detailled = cv.line(detailled, (x1, y1), (x2, y2), color, thickness)
+
+    # draw edge special lines on detailled image
+    for i in range(len(corners)):
+        # get start and end
+        (y1, x1), (y2, x2) = edge_points[2*i], edge_points[2*i+1]
+        
+        # plot line to image
+        detailled = cv.line(detailled, (x1, y1), (x2, y2), (255, 0, 255), thickness)
 
     # plot using subplots
     plt.subplot(1, 3, 1), plt.imshow(img)
@@ -155,7 +168,7 @@ def show_image(img, points, corners):
     plt.xticks([]), plt.yticks([])
 
     plt.subplot(1, 3, 3), plt.imshow(detailled)
-    plt.title('w/ detected corners')
+    plt.title('w/ plotted lines')
     plt.xticks([]), plt.yticks([])
     
     plt.show()
@@ -164,7 +177,7 @@ def show_image(img, points, corners):
 """ main part of file """
 if __name__ == '__main__':
     for fname in filenames:
-        img, points, corners = get_harris_points(fname)
-        show_image(img, points, corners)
+        img, points, corners, edge_points = get_harris_points(fname)
+        show_image(img, points, corners, edge_points)
 
 
