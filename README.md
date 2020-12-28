@@ -1,14 +1,15 @@
 # vision-puzzleTSE
 
+
 ## Pré-Traitement
 
 #### Problèmes rencontrés
 
--
+- *blabla*
 
 #### Avancées
 
--
+- *blabla*
 
 
 ## Traitement
@@ -16,21 +17,21 @@
 #### Problèmes rencontrés
 
 - Image impérativement sans aucun bruit
-- Le profil couleur des bords pour les matcher 2 à 2 reste à faire
 
 #### Avancées
 
 - La détection des coins ne pose pas trop problème
 - Leur ordonnancement non plus, avec un calcul de composante radiale
+- Le profil couleur des bords est fait (distance minimale à une droite)
 
 
 ## Post-traitement (algorithmique)
 
 #### Problèmes rencontrés
 
--
+- *blabla*
 
 #### Avancées
 
--
+- *blabla*
 
