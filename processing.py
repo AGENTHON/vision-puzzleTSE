@@ -6,9 +6,8 @@ from copy import copy
 
 import cv2 as cv
 
-
 """ paths definition """
-filenames = [ './Banque/piece_' + str(i) + '.png' for i in range(1, 7) ]
+filenames = [ './Banque/piece_' + str(i) + '.png' for i in range(1, 11) ]
 
 
 """ Enum Types Definition """
