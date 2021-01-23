@@ -10,74 +10,83 @@ import cv2 as cv
 filenames = [ './Banque/piece_' + str(i) + '.png' for i in range(1, 11) ]
 
 
-""" get centroid of piece """
-def get_centroid(path):
-    # read image from file
-    gray = np.float32(cv.imread(path, 0))
-    _, thresh = cv.threshold(gray, 127, 255, 0)
-    
-    # calculate moments and centroid coordinates of binary image
-    M = cv.moments(thresh)
+""" get all mathematical elements from image """
+def get_all_elements(img):
+    # convert to gray scale then binary
+    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+
+    # calculate moments and centroid coordinates of image
+    M = cv.moments(gray)
     cX = int(M["m10"] / M["m00"])
     cY = int(M["m01"] / M["m00"])
 
-    # return centroid
-    return (cX, cY)
+    centroided = img.copy()
+    cv.circle(centroided, (cX,cY), 5, (255,0,0), -1)
+    
+    # compute Shi-Tomasi detection on standard image
+    shiTomGray = gray.copy()
+    shiTomGray = cv.cvtColor(gray.copy(), cv.COLOR_GRAY2RGB)
+    
+    corners = cv.goodFeaturesToTrack(gray, 25, 0.01, 10)
+    corners = np.int0(corners)
+    
+    for i in corners:
+        x, y = i.ravel()
+        cv.circle(shiTomGray, (x,y), 5, (255,0,0), -1)
 
+    # get Canny image
+    canny = cv.Canny(gray, 100, 255)
 
-""" Canny edge detector """
-def get_canny_img(path):
-    # read image from file
-    gray = cv.imread(path, 0)
-    edges = cv.Canny(gray, 100, 255)
+    # compute Shi-Tomasi detection on Canny image
+    shiTomCanny = cv.cvtColor(canny.copy(), cv.COLOR_GRAY2RGB)
+    
+    corners = cv.goodFeaturesToTrack(canny, 25, 0.01, 10)
+    corners = np.int0(corners)
+    
+    for i in corners:
+        x, y = i.ravel()
+        cv.circle(shiTomCanny, (x,y), 5, (255,0,0), -1)
 
-    # return Canny image
-    return edges
+    # return elements
+    return centroided, shiTomGray, shiTomCanny
 
 
 """ plot images """
-def plot_all_images(path, centroid, canny):
-    # generate images
-    image = generate_image(path)
-    cannyWithCentroid = generate_centroid_image(canny, centroid)
-
+def plot_all_images(img, centroided, shiTomGray, shiTomCanny):
     # plot using subplots
-    plt.subplot(1, 2, 1)
-    plt.imshow(image, cmap = 'gray')
+    plt.subplot(2, 2, 1)
+    plt.imshow(img)
     plt.title('Original')
     plt.xticks([]), plt.yticks([])
     
-    plt.subplot(1, 2, 2)
-    plt.imshow(cannyWithCentroid, cmap = 'gray')
-    plt.title('Canny + centroid')
+    plt.subplot(2, 2, 2)
+    plt.imshow(centroided)
+    plt.title('w/ centroid')
+    plt.xticks([]), plt.yticks([])
+
+    plt.subplot(2, 2, 3)
+    plt.imshow(shiTomGray)
+    plt.title('Shi-Tomasi on gray')
+    plt.xticks([]), plt.yticks([])
+
+    plt.subplot(2, 2, 4)
+    plt.imshow(shiTomCanny)
+    plt.title('Shi-Tomasi on Canny')
     plt.xticks([]), plt.yticks([])
     
     plt.show()
 
 
-""" generate image method """
-def generate_image(path):
-    # return image
-    return cv.imread(path)
-
-
-""" generate centroid image method """
-def generate_centroid_image(img, centroid):
-    # add all points to basic image
-    cX, cY = centroid
-    for (a,b) in [ (cX + i, cY + j) for i in range(-4,5) for j in range(-4,5) ]:
-        # replace on image
-        img[b, a] = 255 # blanc
-    
-    # return image
-    return img
-
-
 """ main part of file """
 if __name__ == '__main__':
     for fname in filenames:
-        centroid = get_centroid(fname)
-        canny = get_canny_img(fname)
-        plot_all_images(fname, centroid, canny)
+        # original
+        img = cv.imread(fname)
+
+        # modified
+        centroided, shiTomGray, shiTomCanny = get_all_elements(img)
+
+        # show everything
+        plot_all_images(img, centroided, shiTomGray, shiTomCanny)
 
 
