@@ -40,6 +40,12 @@ def get_all_elements(img):
 
     # Find contours
     contours, _ = cv.findContours(canny, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    cnt = contours[0]
+    (x,y), (MA,ma), angle = cv.fitEllipse(cnt)
+    
+    kernel = np.ones((5,5), np.uint8)
+    img = cv.line(img, (int(x), int(y)), (int(x+MA*math.cos(math.pi*angle/180)), int(y+MA*math.sin(math.pi*angle/180))), (1.0,0,0), 2)
+    img = cv.line(img, (int(x), int(y)), (int(x+ma*math.cos(math.pi*angle/180+math.pi/2)), int(y+ma*math.sin(math.pi*angle/180+math.pi/2))), (0,1.0,0), 2)
     
     # Find the convex hull object for each contour
     hull_list = []
