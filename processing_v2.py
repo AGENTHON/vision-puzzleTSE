@@ -8,8 +8,7 @@ import cv2 as cv
 
 
 """ paths definition """
-# filenames = [ './Banque/piece_' + str(i) + '.png' for i in range(1, 11) ]
-filenames = [ "not_full.png" ]
+filenames = [ './Banque/piece_' + str(i) + '.png' for i in range(1, 11) ]
 
 
 """ get all mathematical elements from image """
