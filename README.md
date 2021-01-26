@@ -17,7 +17,6 @@
 #### Problèmes rencontrés
 
 - Image impérativement sans aucun bruit
-- pour la méthode détection de coins : les détecteurs Harris et Shi-Tomasi ne donnent pas de résultats suffisants sur de grandes images
 
 #### Avancées (Harris / Shi-Tomasi)
 
