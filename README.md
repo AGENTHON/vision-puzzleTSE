@@ -9,7 +9,7 @@
 
 #### Avancées
 
-- Utilisation de laplacien et HSV popur extraire les objets de la meilleure manière possible
+- Utilisation de laplacien et HSV pour extraire les objets de la meilleure manière possible
 
 
 ## Traitement
