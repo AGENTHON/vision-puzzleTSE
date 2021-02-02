@@ -21,6 +21,11 @@ def detect_with_orb(filename_scene, filename_objects, showMatches = False):
     img_scene = cv.cvtColor(img_scene, cv.COLOR_BGR2RGB)
     keypoints_scene, descriptors_scene = orb.detectAndCompute(img_scene, None)
 
+    # show keypoints of scene
+    showKeyPts = cv.drawKeypoints(img_scene, keypoints_scene, cv.DRAW_MATCHES_FLAGS_DEFAULT)
+    plt.imshow(showKeyPts)
+    plt.show()
+
     # coordinates object for return
     coordinates = []
 
