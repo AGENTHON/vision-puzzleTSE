@@ -41,7 +41,7 @@ def post_traitement(nbRows, nbCols, positions, barycentres, listeBoundingBox, im
 
     for i in range(len(center_positions)):
         if(center_positions[i] is not None):
-            (x,y) = closest_point(center_positions[i],scene_positions)
+            (x,y) = closest_point(barycentres[i],scene_positions)
             font = cv.FONT_HERSHEY_SIMPLEX
             fontScale = 1
             fontColor = (255,0,0)
@@ -62,6 +62,7 @@ def post_traitement(nbRows, nbCols, positions, barycentres, listeBoundingBox, im
     plt.imshow(image_initiale)
     plt.show()
 
-
+    plt.imshow(img_scene)
+    plt.show()
 ### END OF FILE ###
     
