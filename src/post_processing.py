@@ -47,8 +47,8 @@ def post_traitement(nbRows, nbCols, positions, barycentres, listeBoundingBox, im
             fontColor = (255,0,0)
             lineType = 2
           
-            cv.putText(img_scene,str((x,y)), 
-                (x,y), 
+            cv.putText(image_initiale,str((x,y)), 
+                barycentres[i], 
                 font, 
                 fontScale,
                 fontColor,
