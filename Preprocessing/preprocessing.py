@@ -1,38 +1,42 @@
 import cv2 
 import numpy as np
+import matplotlib.pyplot as plt
 
-path = 'puzzle Dedede\pieces_1.png'
+
+path = 'puzzleDedede/full_pieces.png'
 img = cv2.imread(path)
 
-cv2.imshow('oui',img)
-cv2.waitKey(2)
-cv2.destroyAllWindows()
-
+plt.imshow(img, cmap='viridis')
+plt.show()
 
 
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 height, width = gray.shape
 
-cv2.imshow('oui',gray)
-cv2.waitKey(2)
-cv2.destroyAllWindows()
+plt.imshow(gray, cmap='gray')
+plt.show()
 
-font = gray[1,1]
+font = gray
 
-font = np.where(gray[:,:]==gray[1,1])
+font1 = np.where(gray[:,:]==gray[1,1]-1)
+font2 = np.where(gray[:,:]==gray[1,1])                 
+font3 = np.where(gray[:,:]==gray[1,1]+1)                 
 #objet = np.where(gray[:,:]!=240)
 
 
-gray[font] = 0
+font[font1] = 0
+font[font2] = 0
+font[font3] = 0
  #gray[objet] = 255
 
 
-ret,bw = cv2.threshold(gray,0,255,cv2.THRESH_BINARY)
+ret,bw = cv2.threshold(font,0,255,cv2.THRESH_BINARY)
 
-cv2.imshow('imgbw',bw)
-cv2.waitKey(2)
-cv2.destroyAllWindows()
+plt.imshow(bw, cmap='binary')
+plt.title('bw')
+plt.show()
 
+# Equivalent d'un bwfill
 
 im_floodfill = bw.copy()
 
@@ -56,9 +60,53 @@ im_floodfill_inv = cv2.bitwise_not(im_floodfill)
 im_out = bw | im_floodfill_inv
 
 # Display images.
-# cv2.imshow("Foreground", im_out)
-
-# cv2.waitKey(2)
+plt.imshow(im_out, cmap='binary')
+plt.title('im_out')
+plt.show()
 
 
 label = cv2.connectedComponents(im_out)
+
+nblabel = label[0]
+imglabelOrigine = label[1]
+
+print(label[0])
+plt.imshow(imglabelOrigine, cmap='gray')
+plt.show()
+
+
+centresImg = []
+imgPieces = []
+
+idxLabel = np.where(imglabelOrigine[:,:]!=68)
+    
+imgLabel = gray
+imgLabel[idxLabel] = 0
+plt.imshow(imgLabel, cmap='gray')
+plt.show()
+
+# for i in range(1,nblabel):
+#     idxLabel = np.where(imglabelOrigine[:,:]!=i)
+    
+#     imgLabel = gray.copy()
+#     imgLabel[idxLabel] = 0
+    
+#     imgCentroid = im_out.copy()
+#     imgCentroid[idxLabel] = 0
+    
+#     plt.imshow(imgLabel, cmap='gray')
+#     plt.show()
+    
+#     contours, hierarchy = cv2.findContours(imgCentroid,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+#     for c in contours:
+#     	   # calculate moments for each contour
+#     	   M = cv2.moments(c)
+#     	   # calculate x,y coordinate of center
+#     	   cX = int(M["m10"] / M["m00"])
+#     	   cY = int(M["m01"] / M["m00"])
+#     imgPieces.append(imgLabel)      
+#     centresImg.append((cX,cY))
+    
+# plt.imshow(imgLabel, cmap='gray')
+# plt.scatter(cX, cY, c = 'red')
+# plt.show()       
