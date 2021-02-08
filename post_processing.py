@@ -58,7 +58,7 @@ def post_traitement(nbRows, nbCols, positions, barycentres, listeBoundingBox, im
                 lineType)
      
             cv.rectangle(image_initiale, (int(listeBoundingBox[i][0]), int(listeBoundingBox[i][1])), \
-              (int(listeBoundingBox[i][0]+listeBoundingBox[i][2]), int(listeBoundingBox[i][1]+listeBoundingBox[i][3])), color, 2)
+              (int(listeBoundingBox[i][0]+listeBoundingBox[i][2]), int(listeBoundingBox[i][1]+listeBoundingBox[i][3])), fontColor, 2)
     
     
 
