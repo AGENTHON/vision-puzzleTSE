@@ -34,18 +34,18 @@ def post_traitement(nbRows, nbCols, positions, barycentres, listeBoundingBox, im
     for k in positions:
         if(k!=None):
             (a,b,c,e)=k
-            center_positions.append((int((b[0]-a[0]) / 2 ),int((e[1]-a[1]) / 2 )))
+            center_positions.append((int((b[0]+a[0]) / 2 ),int((e[1]+a[1]) / 2 )))
         else:
             center_positions.append(None)
 
 
     for i in range(len(center_positions)):
         if(center_positions[i] is not None):
-            (x,y) = closest_point(barycentres[i],scene_positions)
+            (x,y) = closest_point(center_positions[i],scene_positions)
             font = cv.FONT_HERSHEY_SIMPLEX
             fontScale = 1
-            fontColor = (255,0,0)
-            lineType = 2
+            fontColor = (127,0,255)
+            lineType = 3
           
             cv.putText(image_initiale,str((x,y)), 
                 barycentres[i], 
@@ -55,14 +55,15 @@ def post_traitement(nbRows, nbCols, positions, barycentres, listeBoundingBox, im
                 lineType)
      
             cv.rectangle(image_initiale, (int(listeBoundingBox[i][0]), int(listeBoundingBox[i][1])), \
-              (int(listeBoundingBox[i][0]+listeBoundingBox[i][3]), int(listeBoundingBox[i][1]+listeBoundingBox[i][2])), fontColor, 2)
+              (int(listeBoundingBox[i][0]+listeBoundingBox[i][3]), int(listeBoundingBox[i][1]+listeBoundingBox[i][2])), fontColor, 3)
     
     
 
     plt.imshow(image_initiale)
     plt.show()
-
     plt.imshow(img_scene)
     plt.show()
+
+
 ### END OF FILE ###
     
