@@ -2,7 +2,7 @@ clear all;
 close all;
 clc;
 
-image = imread('test.png');
+image = imread('filename.png');
 
 figure;
 imshow(image);
@@ -10,14 +10,21 @@ imshow(image);
 % subplot(2,2,2);imshow(image(:,:,1));
 % subplot(2,2,3);imshow(image(:,:,2));
 % subplot(2,2,4);imshow(image(:,:,3));
+IG = rgb2gray(image);
+bw = IG>0;
+figure;
+imshow(bw);
 %%
 
 IG = rgb2gray(image);
 figure;
 imshow(IG)
+idx=find(IG==240-1);
+IG(idx)=0;
 idx=find(IG==240);
 IG(idx)=0;
-
+idx=find(IG==240+1);
+IG(idx)=0;
 figure;
 imshow(IG);
 

@@ -10,7 +10,7 @@ plt.imshow(img, cmap='viridis')
 plt.show()
 
 
-gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 height, width = gray.shape
 
 plt.imshow(gray, cmap='gray')
@@ -72,41 +72,48 @@ imglabelOrigine = label[1]
 
 print(label[0])
 plt.imshow(imglabelOrigine, cmap='gray')
+plt.title('label')
 plt.show()
-
 
 centresImg = []
 imgPieces = []
+BB = []
+err = True
 
-idxLabel = np.where(imglabelOrigine[:,:]!=68)
+for i in range(1,nblabel):
     
-imgLabel = gray
-imgLabel[idxLabel] = 0
-plt.imshow(imgLabel, cmap='gray')
-plt.show()
-
-# for i in range(1,nblabel):
-#     idxLabel = np.where(imglabelOrigine[:,:]!=i)
+    idxLabel = np.where(imglabelOrigine[:,:]!=i)
+    imgLabel = img.copy()
     
-#     imgLabel = gray.copy()
-#     imgLabel[idxLabel] = 0
+    imgLabel[:,:,0][idxLabel]  = 0
+    imgLabel[:,:,1][idxLabel]  = 0
+    imgLabel[:,:,2][idxLabel]  = 0
     
-#     imgCentroid = im_out.copy()
-#     imgCentroid[idxLabel] = 0
+    imgCentroid = im_out.copy()
+    imgCentroid[idxLabel] = 0
     
-#     plt.imshow(imgLabel, cmap='gray')
-#     plt.show()
+    # plt.imshow(imgLabel, cmap='gray')
+    # plt.show()    
     
-#     contours, hierarchy = cv2.findContours(imgCentroid,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-#     for c in contours:
-#     	   # calculate moments for each contour
-#     	   M = cv2.moments(c)
-#     	   # calculate x,y coordinate of center
-#     	   cX = int(M["m10"] / M["m00"])
-#     	   cY = int(M["m01"] / M["m00"])
-#     imgPieces.append(imgLabel)      
-#     centresImg.append((cX,cY))
     
-# plt.imshow(imgLabel, cmap='gray')
-# plt.scatter(cX, cY, c = 'red')
-# plt.show()       
+    contours, hierarchy = cv2.findContours(imgCentroid,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    for c in contours:
+        x, y, w, h = cv2.boundingRect(c)
+        #calculate moments for each contour
+        M = cv2.moments(c)
+        if (M["m00"]==0) :
+            err=False
+            continue
+        # calculate x,y coordinate of center
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+    if err:
+        imgLabel = imgLabel[y:y+h,x:x+w,:]
+        # plt.imshow(imgLabel, cmap='viridis')
+        # plt.show()    
+        
+        imgPieces.append(imgLabel)      
+        centresImg.append((cX,cY))
+        BB.append((x,y,h,w))
+    err = True
+    
