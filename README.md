@@ -5,28 +5,25 @@
 
 #### Problèmes rencontrés
 
-- Les cheveux de Blanche-Neige (noirs sur fond noir donc se détachent mal)
+- Seuillage sur une valeur unique
+- imfill, labellisation
 
 #### Avancées
 
-- Utilisation de laplacien et HSV pour extraire les objets de la meilleure manière possible
+- Extraction des centroïdes et des imagettes
 
 
 ## Traitement
 
 #### Problèmes rencontrés
 
-- Image impérativement sans aucun bruit
-
-#### Avancées (Harris / Shi-Tomasi)
-
-- La détection des coins ne pose pas problème pour de petites images
-- Les coins ne sont pas tous détectés pour de grandes images
+- le manque de détecteurs / keypoints peut empêcher un matching par homographie
+- dans certains cas, les points ne permettent pas de retrouver une homographie satisfaisante
 
 #### Avancées (détecteurs ORB - SURF open source)
 
 - Dadidou est beau (il est bcp trop sexy)
-- La tête de Dadidou matche bien sur l'image complète même à des rotations près
+- détection de la zone probable dans la scène via les descripteurs
 
 
 ## Post-traitement (algorithmique)
@@ -37,5 +34,6 @@
 
 #### Avancées
 
-- *blabla*
+- matching avec les centroïdes virtuels sur la scène
+- affectation par distance minimale
 
