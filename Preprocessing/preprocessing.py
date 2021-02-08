@@ -76,9 +76,9 @@ def pre_traitement(img):
     plt.title('label')
     plt.show()
     
-    centresImg = []
-    imgPieces = []
-    BB = []
+    listeCentroid = []
+    listeImagettes = []
+    listeBoundingBox = []
     err = True
     
     for i in range(1,nblabel):
@@ -113,8 +113,8 @@ def pre_traitement(img):
             # plt.imshow(imgLabel, cmap='viridis')
             # plt.show()    
             
-            imgPieces.append(imgLabel)      
-            centresImg.append((cX,cY))
-            BB.append((x,y,h,w))
+            listeImagettes.append(imgLabel)      
+            listeCentroid.append((cX,cY))
+            listeBoundingBox.append((x,y,h,w))
         err = True
     return listeImagettes, listeCentroid, listeBoundingBox
