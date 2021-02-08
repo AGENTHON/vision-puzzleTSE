@@ -11,16 +11,13 @@ img_scene = cv.cvtColor( cv.imread('./Dedede/dedede_1.png') , cv.COLOR_BGR2RGB )
 imagettes = [ cv.cvtColor( cv.imread('./Dedede/dedede_charcute/' + str(i) + '_' + str(j) + '.png'), cv.COLOR_BGR2RGB ) for i in range(4) for j in range(5) ]
 barycentres = [ (0,0) for i in range(20) ]
 
-nbRows, nbCols = 4, 5
-
-
 
 def euclidian_distance(x1, y1, x2, y2):
     """ distance par norme euclidienne """
     return math.sqrt( math.pow(x1 - x2, 2) + math.pow(y1 - y2, 2) )
 
 
-def detect_with_orb(nbRows, nbCols, img_scene, imagettes, barycentres, showMatches = False):
+def detect_with_orb(img_scene, imagettes, barycentres, showMatches = False):
     """ Use Orb to detect subimages in the scene """
 
     # declare Orb parameters
