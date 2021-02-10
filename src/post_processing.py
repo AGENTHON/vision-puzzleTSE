@@ -21,31 +21,6 @@ def closest_point(point, points):
             pt = n
     return pt
 
-def reconstruct(img_scene, coordinates):
-    """ reconstruct the image from the detected subimages using Orb """
-
-    
-    img_scene = cv.cvtColor(img_scene, cv.COLOR_BGR2RGB)
-    shape = img_scene.shape
-
-    # create black image
-    black_scene = np.zeros(shape, dtype = np.uint8)
-
-    for coord in coordinates:
-        # get sub image from scene
-        X1, X2 = int(coord[0,0,0]), int(coord[1,0,0])
-        Y1, Y2 = int(coord[0,0,1]), int(coord[3,0,1])
-
-        # crop img
-        sub_img = img_scene[Y1 : Y2, X1 : X2]
-
-        # replace space in black scene
-        black_scene[Y1 : Y2, X1 : X2] = sub_img
-
-    # plot black scene
-    plt.imshow(black_scene)
-    plt.title("Black scene with sub images")
-    plt.show()
 
 def post_traitement(nbRows, nbCols, positions, barycentres, listeBoundingBox, image_initiale, img_scene):
     """ plot les carrés et positions sur les imagettes à partir des barycentres """
@@ -75,24 +50,19 @@ def post_traitement(nbRows, nbCols, positions, barycentres, listeBoundingBox, im
               (int(listeBoundingBox[i][0]+listeBoundingBox[i][3]), int(listeBoundingBox[i][1]+listeBoundingBox[i][2])), fontColor, 3)
         
         if(center_positions[i] is not None):
-            point = closest_point(center_positions[i],scene_positions)
-            pos=res[scene_positions.index(point)]
+            point = closest_point(center_positions[i], scene_positions)
+            pos = res[scene_positions.index(point)]
        
-            cv.putText(image_initiale,str(pos), 
+            cv.putText(image_initiale,str(tuple(reversed(pos))), 
                 barycentres[i], 
                 font, 
                 fontScale,
                 fontColor,
                 lineType)
-     
-            
     
-    
-
     plt.imshow(image_initiale)
+    plt.title("Positions pièces puzzle")
     plt.show()
-    
-    reconstruct(img_scene, positions)
 
 
 ### END OF FILE ###
