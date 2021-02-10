@@ -27,9 +27,11 @@ def post_traitement(nbRows, nbCols, positions, barycentres, listeBoundingBox, im
     height, width = img_scene.shape[:2]
     scene_positions=[]
     center_positions=[]
+    res=[]
     for i in range(nbCols):
         for j in range(nbRows):
             scene_positions.append((int((width/nbCols)/2+i*(width/nbCols)),int( (height/nbRows)/2+j*(height/nbRows))))
+            res.append((i,j))
     
     for k in positions:
         if(k!=None):
@@ -41,13 +43,14 @@ def post_traitement(nbRows, nbCols, positions, barycentres, listeBoundingBox, im
 
     for i in range(len(center_positions)):
         if(center_positions[i] is not None):
-            (x,y) = closest_point(center_positions[i],scene_positions)
+            point = closest_point(center_positions[i],scene_positions)
+            pos=res[scene_positions.index(point)]
             font = cv.FONT_HERSHEY_SIMPLEX
             fontScale = 1
             fontColor = (127,0,255)
             lineType = 3
-          
-            cv.putText(image_initiale,str((x,y)), 
+            
+            cv.putText(image_initiale,str(pos), 
                 barycentres[i], 
                 font, 
                 fontScale,
