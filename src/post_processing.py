@@ -40,16 +40,19 @@ def post_traitement(nbRows, nbCols, positions, barycentres, listeBoundingBox, im
         else:
             center_positions.append(None)
 
-
+    font = cv.FONT_HERSHEY_SIMPLEX
+    fontScale = 1
+    fontColor = (127,0,255)
+    lineType = 3
+            
     for i in range(len(center_positions)):
+        cv.rectangle(image_initiale, (int(listeBoundingBox[i][0]), int(listeBoundingBox[i][1])), \
+              (int(listeBoundingBox[i][0]+listeBoundingBox[i][3]), int(listeBoundingBox[i][1]+listeBoundingBox[i][2])), fontColor, 3)
+        
         if(center_positions[i] is not None):
             point = closest_point(center_positions[i],scene_positions)
             pos=res[scene_positions.index(point)]
-            font = cv.FONT_HERSHEY_SIMPLEX
-            fontScale = 1
-            fontColor = (127,0,255)
-            lineType = 3
-            
+       
             cv.putText(image_initiale,str(pos), 
                 barycentres[i], 
                 font, 
@@ -57,8 +60,7 @@ def post_traitement(nbRows, nbCols, positions, barycentres, listeBoundingBox, im
                 fontColor,
                 lineType)
      
-            cv.rectangle(image_initiale, (int(listeBoundingBox[i][0]), int(listeBoundingBox[i][1])), \
-              (int(listeBoundingBox[i][0]+listeBoundingBox[i][3]), int(listeBoundingBox[i][1]+listeBoundingBox[i][2])), fontColor, 3)
+            
     
     
 
