@@ -21,6 +21,31 @@ def closest_point(point, points):
             pt = n
     return pt
 
+def reconstruct(img_scene, coordinates):
+    """ reconstruct the image from the detected subimages using Orb """
+
+    
+    img_scene = cv.cvtColor(img_scene, cv.COLOR_BGR2RGB)
+    shape = img_scene.shape
+
+    # create black image
+    black_scene = np.zeros(shape, dtype = np.uint8)
+
+    for coord in coordinates:
+        # get sub image from scene
+        X1, X2 = int(coord[0,0,0]), int(coord[1,0,0])
+        Y1, Y2 = int(coord[0,0,1]), int(coord[3,0,1])
+
+        # crop img
+        sub_img = img_scene[Y1 : Y2, X1 : X2]
+
+        # replace space in black scene
+        black_scene[Y1 : Y2, X1 : X2] = sub_img
+
+    # plot black scene
+    plt.imshow(black_scene)
+    plt.title("Black scene with sub images")
+    plt.show()
 
 def post_traitement(nbRows, nbCols, positions, barycentres, listeBoundingBox, image_initiale, img_scene):
     """ plot les carrés et positions sur les imagettes à partir des barycentres """
@@ -66,8 +91,8 @@ def post_traitement(nbRows, nbCols, positions, barycentres, listeBoundingBox, im
 
     plt.imshow(image_initiale)
     plt.show()
-    plt.imshow(img_scene)
-    plt.show()
+    
+    reconstruct(img_scene, positions)
 
 
 ### END OF FILE ###
