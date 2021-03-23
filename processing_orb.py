@@ -6,8 +6,8 @@ import cv2 as cv
 
 
 """ paths definition """
-filename_scene = './Test_Orb/dedede_1.png'
-filename_objects = [ './dedede_charcute/' + str(i) + '_' + str(j) + '.png' for i in range(4) for j in range(5) ]
+filename_scene = './Dedede/dedede_1.png'
+filename_objects = [ './Dedede/dedede_charcute/' + str(i) + '_' + str(j) + '.png' for i in range(4) for j in range(5) ]
 
 
 def detect_with_orb(filename_scene, filename_objects, showMatches = False):
